@@ -1,0 +1,15 @@
+# Virtual Environments (Linux and Windows)
+venv/
+build_venv/
+
+# Python compiled files
+__pycache__/
+
+# PyInstaller Output (Generated when you build)
+dist/
+build/
+*.spec
+*.csv
+
+#packaging
+USB_contents/
