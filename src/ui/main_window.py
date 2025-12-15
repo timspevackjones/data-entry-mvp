@@ -1,29 +1,36 @@
-import sys
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, 
-    QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView,
-    QComboBox, QDateEdit
+    QMainWindow,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+    QMessageBox,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QComboBox,
+    QDateEdit,
 )
 from datetime import date, datetime
-from PyQt6.QtCore import QSize, QDate, Qt
+from PyQt6.QtCore import QDate, Qt
 from src.database.data_manager import DataManager
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("UCL Data Haven - Table View")
-        self.resize(1000, 600) # Make it wide like Excel
+        self.resize(1000, 600)  # Make it wide like Excel
 
         self.data_manager = DataManager()
-        
+
         # 1. Store Data & Headers
-        self.headers = [] 
-        self.current_data = [] 
-        
+        self.headers = []
+        self.current_data = []
+
         # 2. Setup the UI
         self.setup_ui()
-        
+
         # 3. Load Data & Fill Table
         self.refresh_data()
 
@@ -43,7 +50,9 @@ class MainWindow(QMainWindow):
         # --- SAVE BUTTON (Iterates table to save changes) ---
         # Note: We will implement the actual 'Save' logic in the next step
         self.btn_save = QPushButton("Save Changes to Database")
-        self.btn_save.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        self.btn_save.setStyleSheet(
+            "background-color: #4CAF50; color: white; font-weight: bold;"
+        )
         self.btn_save.clicked.connect(self.save_data)
         layout.addWidget(self.btn_save)
 
@@ -56,7 +65,7 @@ class MainWindow(QMainWindow):
         """Fetches data from SQL and rebuilds the table"""
         # 1. Get Data
         self.headers, self.current_data = self.data_manager.get_all_records()
-        
+
         # 2. Configure Table Dimensions
         self.table.setColumnCount(len(self.headers))
         self.table.setRowCount(len(self.current_data))
@@ -75,23 +84,25 @@ class MainWindow(QMainWindow):
             "StatusDate": "READONLY",
             "Sex": "SEX_COMBOBOX",
             "DateOfBirth": "DATE",
-            "Status": "READONLY" 
+            "Status": "READONLY",
         }
 
         # Loop through every row of data
         for row_idx, row_data in enumerate(self.current_data):
-            
+
             # Loop through every column in that row
             for col_idx, col_name in enumerate(self.headers):
                 cell_value = row_data[col_idx]
                 rule = special_rules.get(col_name, "TEXT")
 
                 # --- LOGIC TO CHOOSE CELL TYPE ---
-                
+
                 if rule == "READONLY":
                     # Standard Item, but grayed out and locked
                     item = QTableWidgetItem(str(cell_value))
-                    item.setFlags(item.flags() ^ Qt.ItemFlag.ItemIsEditable) # Remove edit flag
+                    item.setFlags(
+                        item.flags() ^ Qt.ItemFlag.ItemIsEditable
+                    )  # Remove edit flag
                     item.setBackground(Qt.GlobalColor.lightGray)
                     self.table.setItem(row_idx, col_idx, item)
 
@@ -108,13 +119,13 @@ class MainWindow(QMainWindow):
                     date_edit = QDateEdit()
                     date_edit.setDisplayFormat("yyyy-MM-dd")
                     date_edit.setCalendarPopup(True)
-                    
+
                     if cell_value:
                         qdate = QDate(cell_value.year, cell_value.month, cell_value.day)
                         date_edit.setDate(qdate)
                     else:
                         date_edit.setDate(QDate.currentDate())
-                    
+
                     # Embed it
                     self.table.setCellWidget(row_idx, col_idx, date_edit)
 
@@ -125,13 +136,15 @@ class MainWindow(QMainWindow):
                     self.table.setItem(row_idx, col_idx, QTableWidgetItem(display_text))
 
         # Make it look nice
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
 
-    def get_table_row_data (self, row_idx):
+    def get_table_row_data(self, row_idx):
         """
         Helper to extract clean data from a single row of widgets.
         Returns a list of values: ['1', 'A111', 'Hall', ...]
-        """        
+        """
         row_values = []
         for col_idx, col_name in enumerate(self.headers):
             # Check if there is a special widget (Combo/Date)
@@ -147,24 +160,24 @@ class MainWindow(QMainWindow):
                 # Extraction logic for standard text cells
                 # If item is None (empty), return ""
                 row_values.append(item.text().strip() if item else "")
-        
+
         return row_values
-        
+
     def save_data(self):
         changes_count = 0
         errors = []
 
         # Loop through every row in the UI
         for row_idx in range(self.table.rowCount()):
-            
+
             # 1. Get the Current UI Data
             new_data = self.get_table_row_data(row_idx)
-            
+
             # 2. Get the Original Data (Snapshot)
-            # Note: self.current_data is a list of tuples/lists. 
+            # Note: self.current_data is a list of tuples/lists.
             # We need to make sure we compare strings to strings.
             original_row = self.current_data[row_idx]
-            
+
             # Convert original to string list for fair comparison
             # (Because SQL gives us Objects like datetime.date, but UI gives us Strings)
             original_strings = []
@@ -173,7 +186,7 @@ class MainWindow(QMainWindow):
                     original_strings.append("")
                 elif isinstance(val, datetime):
                     # Keep the time for StatusDate!
-                    original_strings.append(str(val)) 
+                    original_strings.append(str(val))
                 elif isinstance(val, date):
                     original_strings.append(val.strftime("%Y-%m-%d"))
                 else:
@@ -184,8 +197,11 @@ class MainWindow(QMainWindow):
                 for i, (new_val, old_val) in enumerate(zip(new_data, original_strings)):
                     if new_val != old_val:
                         col_name = self.headers[i]
-                        print(f"DEBUG: Row {row_idx} change detected in '{col_name}': '{new_val}' vs '{old_val}'")
-                
+                        print(
+                            f"DEBUG: Row {row_idx} change detected in '{col_name}': "
+                            f"'{new_val}' vs '{old_val}'"
+                        )
+
                 try:
                     rec_id = new_data[self.headers.index("RecID")]
                     family = new_data[self.headers.index("FamilySerial")]
@@ -199,9 +215,17 @@ class MainWindow(QMainWindow):
 
                     # Send to DB
                     success, msg = self.data_manager.update_record(
-                         rec_id, family, member_id, surname, first, title, sex, dob, status
+                        rec_id,
+                        family,
+                        member_id,
+                        surname,
+                        first,
+                        title,
+                        sex,
+                        dob,
+                        status,
                     )
-                    
+
                     if success:
                         changes_count += 1
                     else:
@@ -213,9 +237,13 @@ class MainWindow(QMainWindow):
         # 4. Final Report
         if errors:
             QMessageBox.warning(self, "Warnings", "\n".join(errors))
-        
+
         if changes_count > 0:
-            QMessageBox.information(self, "Saved", f"Successfully updated {changes_count} records.")
-            self.refresh_data() # Reload from DB to get fresh Snapshot
+            QMessageBox.information(
+                self, "Saved", f"Successfully updated {changes_count} records."
+            )
+            self.refresh_data()  # Reload from DB to get fresh Snapshot
         else:
-            QMessageBox.information(self, "No Changes", "No modifications were detected.")
+            QMessageBox.information(
+                self, "No Changes", "No modifications were detected."
+            )
