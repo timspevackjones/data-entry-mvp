@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
 )
 from datetime import date, datetime
 from PyQt6.QtCore import QSize, QDate, Qt
-from data_manager import DataManager
+from src.database.data_manager import DataManager
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -219,11 +219,3 @@ class MainWindow(QMainWindow):
             self.refresh_data() # Reload from DB to get fresh Snapshot
         else:
             QMessageBox.information(self, "No Changes", "No modifications were detected.")
-
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    w = MainWindow()
-    w.show()
-    app.exec()
