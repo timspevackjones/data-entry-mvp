@@ -10,6 +10,10 @@ from PyQt6.QtWidgets import (
     QDateEdit,
 )
 from PyQt6.QtCore import QDate, Qt
+from src.ui.common.enums import FieldType
+from src.ui.common.schema import COLUMN_MAP
+
+
 
 
 class MainView(QMainWindow):
@@ -64,26 +68,19 @@ class MainView(QMainWindow):
         # Turn off signals while building to prevent lag
         self.table.setSortingEnabled(False)
 
-        # The Rule Book
-        special_rules = {
-            "RecID": "READONLY",
-            "StatusDate": "READONLY",
-            "Sex": "SEX_COMBOBOX",
-            "DateOfBirth": "DATE",
-            "Status": "READONLY",
-        }
-
         # Loop through every row of data
         for row_idx, row_data in enumerate(self.current_data):
 
             # Loop through every column in that row
             for col_idx, col_name in enumerate(self.headers):
                 cell_value = row_data[col_idx]
-                rule = special_rules.get(col_name, "TEXT")
+
+                # If the column isn't in the map, default to FieldType.TEXT
+                field_type = COLUMN_MAP.get(col_name, FieldType.TEXT)
 
                 # --- LOGIC TO CHOOSE CELL TYPE ---
 
-                if rule == "READONLY":
+                if field_type == FieldType.READONLY:
                     # Standard Item, but grayed out and locked
                     item = QTableWidgetItem(str(cell_value))
                     item.setFlags(
@@ -92,7 +89,7 @@ class MainView(QMainWindow):
                     item.setBackground(Qt.GlobalColor.lightGray)
                     self.table.setItem(row_idx, col_idx, item)
 
-                elif rule == "SEX_COMBOBOX":
+                elif field_type == FieldType.SEX_COMBOBOX:
                     # Create a dropdown
                     combo = QComboBox()
                     combo.addItems(["", "M", "F"])
@@ -100,15 +97,21 @@ class MainView(QMainWindow):
                     # Embed it into the table cell
                     self.table.setCellWidget(row_idx, col_idx, combo)
 
-                elif rule == "DATE":
+                elif field_type == FieldType.DATE:
                     # Create a date picker
                     date_edit = QDateEdit()
                     date_edit.setDisplayFormat("yyyy-MM-dd")
                     date_edit.setCalendarPopup(True)
 
                     if cell_value:
-                        qdate = QDate(cell_value.year, cell_value.month, cell_value.day)
-                        date_edit.setDate(qdate)
+                        # Safety check: ensure cell_value is actually a date object
+                        # (sometimes SQL returns strings depending on the driver)
+                        try:
+                            qdate = QDate(cell_value.year, cell_value.month, cell_value.day)
+                            date_edit.setDate(qdate)
+                        except AttributeError:
+                             # Fallback if it came through as a string
+                            date_edit.setDate(QDate.currentDate())
                     else:
                         date_edit.setDate(QDate.currentDate())
 
@@ -116,8 +119,7 @@ class MainView(QMainWindow):
                     self.table.setCellWidget(row_idx, col_idx, date_edit)
 
                 else:
-                    # Standard Text Cell
-                    # Convert None to empty string
+                    # Default: FieldType.TEXT
                     display_text = str(cell_value) if cell_value is not None else ""
                     self.table.setItem(row_idx, col_idx, QTableWidgetItem(display_text))
 
