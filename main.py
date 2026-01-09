@@ -1,8 +1,8 @@
 import sys
 import os
 from PyQt6.QtWidgets import QApplication
-from src.ui.main_view import MainView
-from src.ui.main_presenter import MainPresenter
+from src.ui.view.main_view import MainView
+from src.ui.presenter.main_presenter import MainPresenter
 from src.database.data_manager import DataManager
 
 # Ensure Python can see the 'src' folder

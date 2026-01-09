@@ -23,7 +23,7 @@ CONTENTS:
      Run the included spec file to generate the exact build configuration used in the demo:
      pyinstaller UCL_Data_Entry_MVP.spec
      Option B - Manual:
-     pyinstaller --onedir --noconsole --name="UCL_Data_Entry_MVP" app.py
+     pyinstaller --onedir --noconsole --name="UCL_Data_Entry_MVP" main.py
 
 ADDITIONAL NOTES:
 - This application is 100% offline. It makes no network requests.

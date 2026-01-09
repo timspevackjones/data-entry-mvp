@@ -39,7 +39,6 @@ class MainView(QMainWindow):
         layout.addWidget(self.btn_refresh)
 
         # --- SAVE BUTTON (Iterates table to save changes) ---
-        # Note: We will implement the actual 'Save' logic in the next step
         self.btn_save = QPushButton("Save Changes to Database")
         self.btn_save.setStyleSheet(
             "background-color: #4CAF50; color: white; font-weight: bold;"
