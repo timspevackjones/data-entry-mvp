@@ -15,6 +15,9 @@ class MainPresenter:
         self.view.btn_refresh.clicked.connect(self.load_data)
         self.view.btn_save.clicked.connect(self.handle_save)
 
+        self.view.btn_search.clicked.connect(self.handle_search)
+        self.view.btn_clear.clicked.connect(self.handle_clear_search)
+
         # Initial Load
         self.load_data()
 
@@ -89,3 +92,22 @@ class MainPresenter:
             QMessageBox.information(
                 self.view, "No Changes", "No modifications were detected."
             )
+
+    def handle_search(self):
+        """
+        1. Get params from View
+        2. Ask DataManager to find records
+        3. Update View with results
+        """
+        search_params = self.view.get_search_params()
+
+        # Fetch filtered data from DataManager
+        headers, filtered_data = self.data_manager.search_records(search_params)
+
+        # Update the View with filtered data
+        self.view.set_table_data(headers, filtered_data)
+    
+    def handle_clear_search(self):
+        """Clears search inputs and reloads full data."""
+        self.view.clear_search_fields()
+        self.load_data() # This calls the original get_all_records

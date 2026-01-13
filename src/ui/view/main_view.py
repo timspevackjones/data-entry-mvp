@@ -8,10 +8,14 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QComboBox,
     QDateEdit,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit
 )
 from PyQt6.QtCore import QDate, Qt
 from src.ui.common.enums import FieldType
-from src.ui.common.schema import COLUMN_MAP
+from src.ui.common.schema import COLUMN_MAP, SEARCH_FIELDS
 
 
 
@@ -34,6 +38,10 @@ class MainView(QMainWindow):
         # Main Layout
         layout = QVBoxLayout()
 
+        # -- SETUP SEARCH BAR ---
+        self.setup_search_bar()
+        layout.addWidget(self.search_group)
+
         # --- THE TABLE ---
         self.table = QTableWidget()
         layout.addWidget(self.table)
@@ -53,6 +61,52 @@ class MainView(QMainWindow):
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+
+    def setup_search_bar(self):
+        """Creates the search input fields above the table."""
+        self.search_group = QGroupBox("Search Filters")
+        self.search_layout = QHBoxLayout()
+      
+        self.search_inputs = {}
+
+        for field in SEARCH_FIELDS:
+            # Create a label and input for each
+            label = QLabel(field + ":")
+            line_edit = QLineEdit()
+            line_edit.setPlaceholderText(f"Search {field}...")
+            
+            # Add to layout
+            self.search_layout.addWidget(label)
+            self.search_layout.addWidget(line_edit)
+            
+            # Store reference so we can read it later
+            self.search_inputs[field] = line_edit
+
+        # Add Search Button
+        self.btn_search = QPushButton("Search")
+        self.btn_search.setFixedWidth(100)
+        self.search_layout.addWidget(self.btn_search)
+
+        # Add Clear Button
+        self.btn_clear = QPushButton("Clear")
+        self.btn_clear.setFixedWidth(80)
+        self.search_layout.addWidget(self.btn_clear)
+
+        self.search_group.setLayout(self.search_layout)  
+
+    def get_search_params(self):
+        """Returns a dictionary of filled-out search fields."""
+        search_data = {}
+        for field, widget in self.search_inputs.items():
+            text = widget.text().strip()
+            if text:
+                search_data[field] = text
+        return search_data
+
+    def clear_search_fields(self):
+        """Clears all text boxes."""
+        for widget in self.search_inputs.values():
+            widget.clear()
 
     def set_table_data(self, headers, data):
         """Called by Presenter to display data"""

@@ -16,6 +16,11 @@ COLUMN_MAP = {
     # otherwise they will default to TEXT in our logic.
 }
 
+# --- SEARCH CONFIGURATION ---
+# Define which columns get a search box in the UI.
+# Order matters: They will appear left-to-right.
+SEARCH_FIELDS = ["Surname", "FirstName", "FamilySerial", "CohortMemberID"]
+
 
 # --- TEMPORARY TEST SCHEMA ---
 '''

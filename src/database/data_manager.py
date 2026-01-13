@@ -105,6 +105,55 @@ class DataManager:
             # 8. Clean up
             conn.close()
 
+    def search_records(self, search_params):
+        """
+        Searches records based on search_params dictionary.
+        search_dict example: {'Surname': 'Smith', 'FamilySerial': '123'}
+        Returns: (headers, records)       
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        try:
+            # 1. Start with a base query that is always true (WHERE 1=1)
+            # This is a clever trick: it lets us blindly append "AND..." later
+            sort_col = self.db_sort_order if self.db_sort_order else self.primary_key_col
+            base_query = f"SELECT TOP 1000 * FROM {self.table_name} WHERE 1=1"
+            
+            values = []
+            conditions = []
+
+            # 2. Loop through the dictionary and build the "AND Col LIKE ?" parts
+            for col, search_term in search_params.items():
+                if search_term: # Only add if user actually typed something
+                    # We use generic syntax. 
+                    # SQL Server 'LIKE' is case-insensitive by default.
+                    conditions.append(f"{col} LIKE ?")
+                    
+                    # Wrap the term in %...% for wildcard search (contains)
+                    values.append(f"%{search_term}%")
+
+            # 3. Combine it
+            if conditions:
+                # Join them: "AND Surname LIKE ? AND FamilySerial LIKE ?"
+                full_where = " AND ".join(conditions)
+                query = f"{base_query} AND {full_where} ORDER BY {sort_col}"
+            else:
+                # If search is empty, just return the normal top 1000
+                query = f"{base_query} ORDER BY {sort_col}"
+
+            # 4. Execute
+            # print(f"DEBUG SEARCH: {query} with {values}")
+            cursor.execute(query, values)
+
+            headers = [column[0] for column in cursor.description]
+            records = cursor.fetchall()
+
+            return headers, [list(row) for row in records]
+
+        finally:
+            conn.close()
+
 
 if __name__ == "__main__":
     dm = DataManager()
