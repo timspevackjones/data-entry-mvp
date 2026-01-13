@@ -25,6 +25,28 @@ CONTENTS:
      Option B - Manual:
      pyinstaller --onedir --noconsole --name="UCL_Data_Entry_MVP" main.py
 
+3. /Developer_Guide
+   How to adapt this MVP for a different Database Table:
+
+   A. Database Configuration (DataManager.py):
+      1. Open DataManager.py.
+      2. Locate the __init__ method.
+      3. Update 'self.table_name' to your SQL table name (e.g., "tblEmployees").
+      4. Update 'self.primary_key_col' to your primary key column (e.g., "EmployeeID").
+      5. Update 'self.db_sort_order' to control how records appear.
+         - Set to None to default to the Primary Key (e.g., self.db_sort_order = None).
+         - Set to a string for custom sorting (e.g., self.db_sort_order = "Surname, FirstName").
+      6. Update 'self.ignored_columns' to exclude any columns that should not be edited (e.g., auto-calculated dates).
+
+   B. UI Configuration (schema.py):
+      1. Open schema.py.
+      2. Update 'COLUMN_MAP' to match your database columns exactly.
+      3. Assign a FieldType (TEXT, DATE, READONLY) to control how the column appears in the UI.
+      4. New FieldTypes can be managed within enums.py.
+
+   C. Connection String (.env):
+      1. Ensure your .env file contains the correct SQL_CONNECTION_STRING for the new database.
+
 ADDITIONAL NOTES:
 - This application is 100% offline. It makes no network requests.
 - Data is saved locally to "MVP_data_entry.csv" in the same folder as the app.

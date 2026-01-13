@@ -54,41 +54,27 @@ class MainPresenter:
 
             # 3. COMPARE: Did anything change?
             if new_data != original_strings:
+
+                # Instead of manually finding indexes for every single column,
+                # the list is turned into a dictionary.
+                # headers: ['RecID', 'Surname', 'FirstName', ...]
+                # new_data: ['101', 'Smith', 'John', ...]
+                # Result: {'RecID': '101', 'Surname': 'Smith', ...}
+
                 # Optional: Debug print
                 # print(f"DEBUG: Row {row_idx} changed.")
 
-                try:
-                    # Map columns by name
-                    rec_id = new_data[self.headers.index("RecID")]
-                    family = new_data[self.headers.index("FamilySerial")]
-                    member_id = new_data[self.headers.index("CohortMemberID")]
-                    surname = new_data[self.headers.index("Surname")]
-                    first = new_data[self.headers.index("FirstName")]
-                    title = new_data[self.headers.index("Title")]
-                    sex = new_data[self.headers.index("Sex")]
-                    dob = new_data[self.headers.index("DateOfBirth")]
-                    status = new_data[self.headers.index("Status")]
+                # zip automatically pairs headers with new_data
+                row_dict = dict(zip(self.headers, new_data))
 
-                    # Send to DB
-                    success, msg = self.data_manager.update_record(
-                        rec_id,
-                        family,
-                        member_id,
-                        surname,
-                        first,
-                        title,
-                        sex,
-                        dob,
-                        status,
-                    )
+                success, msg = self.data_manager.update_record(row_dict)
 
-                    if success:
-                        changes_count += 1
-                    else:
-                        errors.append(f"Row {row_idx}: {msg}")
+                if success:
+                    changes_count += 1
+                else:
+                    print(f"DEBUG SQL ERROR: {msg}")
+                    errors.append(f"Row {row_idx + 1}: Failed to save. Please check your data.")
 
-                except ValueError as e:
-                    print(f"Skipping row {row_idx} due to missing column: {e}")
 
         # 4. Final Report
         if errors:

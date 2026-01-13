@@ -12,7 +12,17 @@ COLUMN_MAP = {
     "Sex": FieldType.SEX_COMBOBOX,
     "DateOfBirth": FieldType.DATE,
     "Status": FieldType.READONLY,
-    "StatusDate": FieldType.READONLY
     # You can add others if you want them to be explicit, 
     # otherwise they will default to TEXT in our logic.
 }
+
+
+# --- TEMPORARY TEST SCHEMA ---
+'''
+COLUMN_MAP = {
+    "AnimalID": FieldType.READONLY,
+    "AnimalName": FieldType.TEXT,
+    "Species": FieldType.TEXT,
+    "StatusDate": FieldType.READONLY
+}
+'''
