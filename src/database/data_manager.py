@@ -10,6 +10,7 @@ class DataManager:
 
         # --- CONFIGURATION SECTION ---
         self.table_name = "tblCohortMember" # Was "tblTestAnimals" for temp testing
+        # this is the Identity column 
         self.primary_key_col = "RecID" # Was "AnimalID" for temp testing
         
         # OPTIONAL: Set a specific sort order (e.g., "Surname, FirstName")
@@ -70,7 +71,7 @@ class DataManager:
                 return False, f"Critical Error: Row is missing {self.primary_key_col}."
 
             # 4. Filter the dictionary to get only the columns we want to update
-            valid_keys = [k for k in row_dict.keys() if k not in self.ignored_columns]
+            valid_keys = [k for k in row_dict.keys() if k not in self.ignored_columns and k != self.primary_key_col]
 
             if not valid_keys:
                 return False, "No changes detected or valid columns to update."
@@ -116,7 +117,6 @@ class DataManager:
 
         try:
             # 1. Start with a base query that is always true (WHERE 1=1)
-            # This is a clever trick: it lets us blindly append "AND..." later
             sort_col = self.db_sort_order if self.db_sort_order else self.primary_key_col
             base_query = f"SELECT TOP 1000 * FROM {self.table_name} WHERE 1=1"
             
@@ -151,6 +151,46 @@ class DataManager:
 
             return headers, [list(row) for row in records]
 
+        finally:
+            conn.close()
+    
+    def add_record(self, data_dict):
+        """
+        Adds a new record to the database.
+        data_dict: dictionary of column names and their values.
+        Returns: (Success_Boolean, Message_String)
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        try:
+            # 1. Filter out any keys that aren't in the data_dict (safety check)
+            # We only insert columns that actually have data
+            columns = [k for k in data_dict.keys()]
+            
+            if not columns:
+                return False, "No data provided."
+
+            # 2. Build the query
+            # Result: "INSERT INTO tblCohortMember (Surname, FirstName) VALUES (?, ?)"
+            col_str = ", ".join(columns)
+            
+            # Create a string of question marks: "?, ?, ?" matching the number of columns
+            placeholders = ", ".join(["?" for _ in columns])
+            
+            query = f"INSERT INTO {self.table_name} ({col_str}) VALUES ({placeholders})"
+            
+            # 3. Prepare values in the correct order
+            values = [data_dict[col] for col in columns]
+
+            cursor.execute(query, values)
+            conn.commit()
+
+            return True, "Successfully added record."
+
+        except Exception as e:
+            return False, str(e)
+            
         finally:
             conn.close()
 

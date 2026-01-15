@@ -13,8 +13,23 @@ COLUMN_MAP = {
     "DateOfBirth": FieldType.DATE,
     "Status": FieldType.READONLY,
     # You can add others if you want them to be explicit, 
-    # otherwise they will default to TEXT in our logic.
+    # otherwise they will default to TEXT.
 }
+
+# --- CREATE CONFIGURATION ---
+# Define which fields appear in the "Add New" dialog.
+# Order matters: They will appear left-to-right.
+# Todo: alternative option to just use COLUMN_MAP keys minus READONLY fields
+INSERT_FIELDS = [
+    "FamilySerial",
+    "CohortMemberID",
+    "Surname",
+    "FirstName",
+    "Title",
+    "Sex",
+    "DateOfBirth",
+    "Status"
+]
 
 # --- SEARCH CONFIGURATION ---
 # Define which columns get a search box in the UI.

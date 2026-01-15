@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QMessageBox
 from datetime import date, datetime
+from src.ui.view.add_record_dialog import AddRecordDialog
 
 
 class MainPresenter:
@@ -17,6 +17,9 @@ class MainPresenter:
 
         self.view.btn_search.clicked.connect(self.handle_search)
         self.view.btn_clear.clicked.connect(self.handle_clear_search)
+
+        # Connect Add New Record button
+        self.view.btn_add.clicked.connect(self.handle_add_record)
 
         # Initial Load
         self.load_data()
@@ -81,17 +84,12 @@ class MainPresenter:
 
         # 4. Final Report
         if errors:
-            QMessageBox.warning(self.view, "Warnings", "\n".join(errors))
-
+            self.view.show_error("Warnings", "\n".join(errors))
         if changes_count > 0:
-            QMessageBox.information(
-                self.view, "Saved", f"Successfully updated {changes_count} records."
-            )
+            self.view.show_message("Saved", f"Successfully updated {changes_count} records.")
             self.load_data()  # Reload from DB to get fresh Snapshot
         else:
-            QMessageBox.information(
-                self.view, "No Changes", "No modifications were detected."
-            )
+            self.view.show_message("No Changes", "No modifications were detected.")
 
     def handle_search(self):
         """
@@ -111,3 +109,20 @@ class MainPresenter:
         """Clears search inputs and reloads full data."""
         self.view.clear_search_fields()
         self.load_data() # This calls the original get_all_records
+
+    def handle_add_record(self):
+        """Opens the dialog and saves the new record if confirmed."""
+        dialog = AddRecordDialog(self.view)
+        
+        # This pauses the code until the user clicks OK or Cancel
+        if dialog.exec(): 
+            new_data = dialog.get_data()
+            
+            # Send to DataManager
+            success, msg = self.data_manager.add_record(new_data)
+            
+            if success:
+                self.view.show_message("Success", "Record added successfully!")
+                self.load_data() # Refresh table to show the new row
+            else:
+                self.view.show_error("Error", f"Failed to add record: {msg}")

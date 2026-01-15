@@ -32,7 +32,8 @@ CONTENTS:
       1. Open DataManager.py.
       2. Locate the __init__ method.
       3. Update 'self.table_name' to your SQL table name (e.g., "tblEmployees").
-      4. Update 'self.primary_key_col' to your primary key column (e.g., "EmployeeID").
+      4. Update 'self.primary_key_col' to your Identity Key column (e.g., "RecID").
+         * Note: Do not use composite keys here (e.g., FamilyID + MemberID). Use the single unique ID.
       5. Update 'self.db_sort_order' to control how records appear.
          - Set to None to default to the Primary Key (e.g., self.db_sort_order = None).
          - Set to a string for custom sorting (e.g., self.db_sort_order = "Surname, FirstName").
